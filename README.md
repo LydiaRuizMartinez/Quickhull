@@ -12,6 +12,7 @@ Este proyecto consta de los siguientes elementos de desarrollo de software:
 - 1 imagen
     
 ### Colaboradores:
+[@merygon](https://github.com/merygon)
+
 [@davidtarrasa](https://github.com/davidtarrasa)
 
-[@merygon](https://github.com/merygon)
