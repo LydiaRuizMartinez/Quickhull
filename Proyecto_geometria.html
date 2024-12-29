@@ -1,0 +1,219 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Proyecto Final 4: Cierre Convexo con Quickhull</title>
+    <script src="https://sagecell.sagemath.org/static/jquery.min.js"></script>
+    <script src="https://sagecell.sagemath.org/embedded_sagecell.js"></script>
+    <script>
+        $(function () {
+            sagecell.makeSagecell({
+                inputLocation: 'div.compute',
+                template: sagecell.templates.minimal,
+                evalButtonText: 'Lanzar applet interactiva ahora'
+            });
+        });
+    </script>
+    <style>
+        body {
+            width: 1000px;
+            background-color: #fce4ec;
+            color: #3e2723;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0 auto;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1, h2 {
+            color: #5d4037;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        hr {
+            border: 1px solid #3e2723;
+            margin: 20px 0;
+        }
+        p {
+            margin: 10px 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #7b5e57;
+        }
+        img {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>PROYECTO FINAL 4: “Cierre Convexo con Quickhull”</h1>
+</div>
+
+<img src="quickhull_foto.jpg" alt="Imagen de Quickhull" />
+
+<p>Esta web interactiva ilustra paso a paso la construcción del cierre convexo de una nube de puntos utilizando el algoritmo Quickhull.</p>
+<p>Es el proyecto final de la asignatura de Geometría Computacional del Grado en Ingeniería Matemática e Inteligencia Artificial, realizado por María González Gómez, Lydia Ruiz Martínez y David Tarrasa Puebla.</p>
+
+<hr>
+
+<h2>Introducción</h2>
+<p>
+    El algoritmo Quickhull es una técnica eficiente para calcular el cierre convexo de una nube de puntos en un espacio bidimensional. 
+    El algoritmo utiliza un enfoque de divide y vencerás para encontrar los puntos extremos y construir el polígono convexo que los rodea. 
+    Esta implementación permite visualizar cómo se forma el cierre convexo de una nube de puntos paso a paso, lo cual facilita la comprensión del algoritmo.
+</p>
+
+<h2>Instrucciones</h2>
+<p>
+    Para utilizar el applet interactivo, sigue estos pasos:
+</p>
+<ol>
+    <li>Usa el control deslizante para seleccionar el número de puntos a generar en el plano.</li>
+    <li>Haz clic en "Distribución" para seleccionar la distribución de los puntos (uniforme o normal). </li>
+    <li>Usa el control deslizante para seleccionar el paso a mostrar del algoritmo.</li>
+    <li>Observa cómo el algoritmo divide los puntos y calcula la envolvente convexa paso a paso.</li>
+</ol>
+
+<div class="compute">
+<script type="text/x-sage">
+# Código SageMath para generar el diagrama de Quickhull
+"""
+quickhull.ipynb
+
+Geometría Computacional - IMAT
+ICAI, Universidad Pontificia Comillas
+
+Integrantes del grupo:
+    - María González Gómez
+    - Lydia Ruiz Martínez
+    - David Tarrasa Puebla
+"""
+
+def maxX(P):
+    """
+    Función que calcula el punto con el mayor valor en el eje X de un conjunto de puntos P.
+    """
+    return max(P)
+
+def minX(P):
+    """
+    Función que calcula el punto con el menor valor en el eje X de un conjunto de puntos P.
+    """
+    return min(P)
+
+def orientacionPuntoRecta(p1, p2, p):
+    """
+    Función que calcula la orientación de un punto p con respecto a una línea definida por
+    los puntos p1 y p2.
+    """
+    return (p2[0] - p1[0]) * (p[1] - p1[1]) - (p2[1] - p1[1]) * (p[0] - p1[0])
+
+def distanciaLinea(p, p1, p2):
+    """
+    Función que calcula la distancia perpendicular de un punto p a la línea definida por los
+    puntos p1 y p2.
+    """
+    return abs((p2[1] - p1[1]) * p[0] - (p2[0] - p1[0]) * p[1] + p2[0] * p1[1] - p2[1] * p1[0])
+
+def encontrarQuickhull(P, p1, p2):
+    """
+    Función recursiva que encuentra los puntos que forman parte del cierre convexo en un lado
+    de la línea p1-p2.
+    """
+    if not P:
+        return []
+    mas_lejos = max(P, key=lambda x: distanciaLinea(x, p1, p2))
+    P.remove(mas_lejos)
+    izq = [p for p in P if orientacionPuntoRecta(p1, mas_lejos, p) > 0]
+    der = [p for p in P if orientacionPuntoRecta(mas_lejos, p2, p) > 0]
+    return encontrarQuickhull(izq, p1, mas_lejos) + [mas_lejos] + encontrarQuickhull(der, mas_lejos, p2)
+
+def Quickhull(P):
+    """
+    Función principal que implementa el algoritmo Quickhull para calcular el cierre convexo.
+    Divide los puntos en dos mitades (superior e inferior) con respecto a los puntos extremos,
+    y luego encuentra los puntos del cierre convexo en cada mitad.
+    """
+    min_abs = minX(P)
+    max_abs = maxX(P)
+    superior = [p for p in P if orientacionPuntoRecta(min_abs, max_abs, p) > 0]
+    inferior = [p for p in P if orientacionPuntoRecta(max_abs, min_abs, p) > 0]
+    return [min_abs] + encontrarQuickhull(superior, min_abs, max_abs) + [max_abs] + encontrarQuickhull(inferior, max_abs, min_abs)
+
+@interact
+def pedirPuntos(p=slider(3, 100, 1, 1, label='Número de Puntos')):
+    """
+    Función interactiva para seleccionar el número de puntos a generar.
+    """
+    @interact
+    def generaPuntos(distribucion=selector([(1, 'Uniforme'), (2, 'Normal')], label='Distribución')):
+        """
+        Función interactiva para seleccionar la distribución de los puntos (Uniforme o Normal).
+        """
+        if distribucion == 1:
+            P = [[random(), random()] for _ in range(p)]  # Usa random.random()
+        else:
+            P = [[2 * gauss(0, 1), gauss(0, 1)] for _ in range(p)]
+        CH = Quickhull(P)
+        @interact
+        def visualizarPaso(paso=slider(0, len(CH) - 1, 1, 0, label='Paso')):
+            """
+            Función interactiva para visualizar el proceso paso a paso.
+            Muestra los puntos parciales que forman la envolvente convexa.
+            """
+            parciales = CH[:paso + 1]
+            show(
+                list_plot(P, color='blue', size=20, legend_label='Puntos') +
+                polygon(parciales + [parciales[0]], color='hotpink', alpha=0.5, legend_label='Envolvente') +
+                point(parciales, color='green', size=30, legend_label='Puntos Envolvente')
+            )
+</script>
+</div>
+
+<h2>Discusión y aplicaciones reales</h2>
+<p>
+    El algoritmo Quickhull es esencial en diversas aplicaciones que requieren la construcción de polígonos convexos a partir de un conjunto de puntos. 
+    Algunos ejemplos de aplicaciones son:
+</p>
+<ul>
+    <li>
+        <strong>Geometría Computacional:</strong> Quickhull es utilizado para resolver problemas en geometría, como la triangulación de superficies o el análisis de objetos en un espacio tridimensional.
+    </li>
+    <li>
+        <strong>Visión por Computadora:</strong> En la visión por computadora, Quickhull se usa para detectar los bordes de un objeto o para segmentar una imagen en diferentes regiones de interés.
+    </li>
+    <li>
+        <strong>Robótica:</strong> El cálculo del cierre convexo ayuda en la navegación de robots en entornos complejos, especialmente en la planificación de rutas.
+    </li>
+    <li>
+        <strong>Análisis de datos en Big Data:</strong> Quickhull se utiliza para encontrar el conjunto de puntos más extremos en grandes conjuntos de datos, lo que permite identificar límites o anomalías.
+    </li>
+    <li>
+        <strong>Reconocimiento de patrones:</strong> en el aprendizaje automático, Quickhull ayuda a definir las regiones convexas que agrupan datos similares en problemas de clasificación o agrupamiento.
+    </li>
+    <li>
+        <strong>Modelado de Terrenos:</strong> en sistemas de información geográfica (GIS), Quickhull se emplea para modelar superficies terrestres mediante la creación de envolventes convexas en mapas tridimensionales.
+    </li>
+</ul>
+
+<hr>
+
+<div class="footer">
+    Modificado por última vez: 29 de diciembre de 2024.
+</div>
+
+</body>
+</html>
